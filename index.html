@@ -136,15 +136,17 @@
                <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="addExtraJobItem()"><i class="fas fa-plus"></i> เพิ่มรายการช่างตรวจพบ</button>
              </div>
              
-             <div class="alert alert-warning small py-2 px-3"><i class="fas fa-info-circle me-1"></i> หากมีรายการที่ <strong>"ยังไม่เสร็จ/รออะไหล่"</strong> ให้ปิดสวิตช์รายการนั้นไว้ เมื่อกดบันทึกปิดงาน รายการดังกล่าวจะยังคงค้างอยู่ในกระดานให้ทำต่อทีหลังได้ครับ</div>
+             <div class="alert alert-warning small py-2 px-3">
+                 <i class="fas fa-info-circle me-1"></i> หากมีรายการที่ <strong>"ยังไม่เสร็จ/รออะไหล่"</strong> ให้ปิดสวิตช์รายการนั้นไว้ เมื่อกดบันทึกปิดงาน รายการดังกล่าวจะยังคงค้างอยู่ในกระดานให้ทำต่อทีหลังได้ครับ
+             </div>
 
              <div id="mItemsList" class="mb-3"></div>
 
              <div class="mb-3">
-               <label class="form-label small fw-bold text-dark">ชื่อช่าง / ผู้ซ่อม</label>
+               <label class="form-label small fw-bold text-dark">ชื่อช่าง / ผู้ซ่อม (บังคับใส่เมื่อมีรายการทำเสร็จ)</label>
                <input type="text" id="mMechanic" class="form-control border-success" placeholder="ระบุชื่อช่าง">
              </div>
-             <button class="btn btn-success w-100 fw-bold py-3 shadow-sm" onclick="completeJob()"><i class="fas fa-save me-1"></i> บันทึกและปิดงาน</button>
+             <button id="btnCompleteJob" class="btn btn-success w-100 fw-bold py-3 shadow-sm" onclick="completeJob()"><i class="fas fa-save me-1"></i> บันทึกและปิดงาน (เสร็จสมบูรณ์)</button>
            </div>
         </div>
       </div>
@@ -199,7 +201,17 @@
 
     jobsData.forEach(job => {
       let statusClass = job.status === 'รอซ่อม' ? 'status-wait' : job.status === 'กำลังซ่อม' ? 'status-doing' : 'status-parts';
-      let itemsListHtml = job.items.map(itm => `<div class="item-bullet"><i class="fas fa-wrench fa-sm text-secondary"></i> ${itm.name}</div>`).join('');
+      
+      let doneCount = job.items.filter(i => i.isDone).length;
+      let totalCount = job.items.length;
+      
+      let itemsListHtml = job.items.map(itm => {
+          if(itm.isDone) {
+              return `<div class="item-bullet text-success opacity-75"><i class="fas fa-check-circle fa-sm"></i> <del>${itm.name}</del></div>`;
+          } else {
+              return `<div class="item-bullet"><i class="fas fa-wrench fa-sm text-secondary"></i> ${itm.name}</div>`;
+          }
+      }).join('');
 
       let card = `<div class="card mb-3 shadow-sm bg-white job-card ${statusClass}" onclick="openJobModal('${job.jobId}')">
                     <div class="card-body p-3">
@@ -211,7 +223,10 @@
                          <span class="badge bg-secondary mb-2">${job.jobId}</span>
                       </div>
                       <div class="mb-3">
-                         <div class="text-primary small fw-bold mb-1 border-bottom pb-1">รายการแจ้งซ่อม (${job.items.length})</div>
+                         <div class="d-flex justify-content-between text-primary small fw-bold mb-1 border-bottom pb-1">
+                            <span>รายการแจ้งซ่อม</span>
+                            <span>(${doneCount}/${totalCount})</span>
+                         </div>
                          ${itemsListHtml}
                       </div>
                       <div class="text-muted small"><i class="fas fa-tachometer-alt"></i> เลขไมล์: ${job.mile.toLocaleString()}</div>
@@ -237,28 +252,40 @@
     
     let itemsHtml = `<div class="list-group list-group-flush border rounded" id="mItemsContainer">`;
     job.items.forEach(itm => {
-        itemsHtml += `
-        <div class="list-group-item bg-light existing-item p-3">
-           <div class="d-flex justify-content-between align-items-center mb-2">
-               <div class="form-check form-switch m-0 d-flex align-items-center">
-                   <input class="form-check-input item-check me-2" type="checkbox" role="switch" value="${itm.row}" id="chk-${itm.row}" onchange="toggleItemCost(this, ${itm.row})" checked style="width: 2.5em; height: 1.2em; cursor: pointer;">
-                   <label class="form-check-label fw-bold text-dark" for="chk-${itm.row}" style="cursor: pointer;">
-                       <i class="fas fa-wrench text-secondary mx-1"></i> ${itm.name}
-                   </label>
+        if(itm.isDone) {
+            itemsHtml += `
+            <div class="list-group-item bg-success bg-opacity-10 border-success p-3">
+               <div class="d-flex justify-content-between align-items-center">
+                   <div class="fw-bold text-success m-0"><i class="fas fa-check-circle me-1"></i> ${itm.name}</div>
+                   <span class="badge bg-success">เสร็จแล้ว</span>
                </div>
-           </div>
-           <div class="input-group input-group-sm">
-             <span class="input-group-text bg-white border-secondary">ราคา</span>
-             <input type="number" class="form-control cost-input border-secondary" id="cost-input-${itm.row}" data-row="${itm.row}" placeholder="0" required>
-             <span class="input-group-text bg-white border-secondary">บาท</span>
-           </div>
-        </div>`;
+               <div class="text-success small mt-1">ค่าใช้จ่าย: ${itm.cost.toLocaleString()} บาท</div>
+            </div>`;
+        } else {
+            itemsHtml += `
+            <div class="list-group-item bg-light existing-item p-3">
+               <div class="d-flex justify-content-between align-items-center mb-2">
+                   <div class="form-check form-switch m-0 d-flex align-items-center">
+                       <input class="form-check-input item-check me-2" type="checkbox" role="switch" value="${itm.row}" id="chk-${itm.row}" onchange="toggleItemCost(this, ${itm.row})" checked style="width: 2.5em; height: 1.2em; cursor: pointer;">
+                       <label class="form-check-label fw-bold text-dark" for="chk-${itm.row}" style="cursor: pointer;">
+                           <i class="fas fa-wrench text-secondary mx-1"></i> ${itm.name}
+                       </label>
+                   </div>
+               </div>
+               <div class="input-group input-group-sm">
+                 <span class="input-group-text bg-white border-secondary">ราคา</span>
+                 <input type="number" class="form-control cost-input border-secondary" id="cost-input-${itm.row}" data-row="${itm.row}" placeholder="0" required>
+                 <span class="input-group-text bg-white border-secondary">บาท</span>
+               </div>
+            </div>`;
+        }
     });
     itemsHtml += `</div>`;
     
     document.getElementById('mItemsList').innerHTML = itemsHtml;
     document.getElementById('mMechanic').value = '';
     
+    updateSubmitButtonUI();
     new bootstrap.Modal(document.getElementById('jobModal')).show();
   }
 
@@ -274,6 +301,31 @@
           costInput.value = "";
           costInput.closest('.existing-item').classList.add('opacity-50');
       }
+      updateSubmitButtonUI();
+  }
+
+  function updateSubmitButtonUI() {
+      let allChecked = true;
+      let anyChecked = false;
+      document.querySelectorAll('.item-check').forEach(cb => {
+          if(!cb.checked) allChecked = false;
+          if(cb.checked) anyChecked = true;
+      });
+      
+      let hasNewItems = document.querySelectorAll('.new-item-row').length > 0;
+      if(hasNewItems) anyChecked = true;
+      
+      let btn = document.getElementById('btnCompleteJob');
+      if(allChecked && !hasNewItems) {
+          btn.innerHTML = '<i class="fas fa-save me-1"></i> บันทึกและปิดงาน (เสร็จสมบูรณ์)';
+          btn.className = 'btn btn-success w-100 fw-bold py-3 shadow-sm';
+      } else if(anyChecked) {
+          btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> อัปเดตความคืบหน้า (ทำบางส่วน)';
+          btn.className = 'btn btn-info w-100 fw-bold py-3 shadow-sm text-dark';
+      } else {
+          btn.innerHTML = '<i class="fas fa-save me-1"></i> บันทึกการรออะไหล่/พักงาน';
+          btn.className = 'btn btn-warning w-100 fw-bold py-3 shadow-sm text-dark';
+      }
   }
 
   function addExtraJobItem() {
@@ -282,22 +334,23 @@
       
       const newItemHtml = `
         <div class="list-group-item bg-white border-primary border-opacity-50 new-item-row position-relative mt-2 shadow-sm p-3">
-           <button type="button" class="btn-close position-absolute top-0 end-0 m-2" style="font-size: 0.6rem;" onclick="this.closest('.new-item-row').remove()"></button>
+           <button type="button" class="btn-close position-absolute top-0 end-0 m-2" style="font-size: 0.6rem;" onclick="this.closest('.new-item-row').remove(); updateSubmitButtonUI();"></button>
            <div class="fw-bold text-primary mb-2"><i class="fas fa-plus-circle"></i> เพิ่มเติม (ช่างตรวจพบ)</div>
            <div class="row g-2">
              <div class="col-12">
-               <input type="text" class="form-control form-control-sm new-item-name border-primary" placeholder="ระบุรายการซ่อมที่ทำเพิ่ม" required>
+               <input type="text" class="form-control form-control-sm new-item-name border-primary" placeholder="ระบุรายการซ่อมที่ทำเพิ่ม" required oninput="updateSubmitButtonUI()">
              </div>
              <div class="col-12">
                <div class="input-group input-group-sm border-primary">
                  <span class="input-group-text text-primary border-primary bg-white">ราคา</span>
-                 <input type="number" class="form-control new-item-cost border-primary" placeholder="0" required>
+                 <input type="number" class="form-control new-item-cost border-primary" placeholder="0" required oninput="updateSubmitButtonUI()">
                  <span class="input-group-text border-primary bg-white">บาท</span>
                </div>
              </div>
            </div>
         </div>`;
       container.insertAdjacentHTML('beforeend', newItemHtml);
+      updateSubmitButtonUI();
   }
 
   async function updateStatus(newStatus) {
@@ -310,20 +363,26 @@
 
   async function completeJob() {
     let mech = document.getElementById('mMechanic').value;
-    if(!mech) {
-       Swal.fire('แจ้งเตือน', 'กรุณาระบุ "ชื่อช่าง" ก่อนปิดงาน', 'warning');
+    let anyChecked = Array.from(document.querySelectorAll('.item-check')).some(cb => cb.checked);
+    let hasNewItems = document.querySelectorAll('.new-item-row').length > 0;
+    
+    if((anyChecked || hasNewItems) && !mech) {
+       Swal.fire('แจ้งเตือน', 'กรุณาระบุ "ชื่อช่าง" ก่อนบันทึกรายการที่ทำเสร็จแล้ว', 'warning');
+       return;
+    }
+
+    if(!anyChecked && !hasNewItems) {
+       updateStatus('รออะไหล่'); 
        return;
     }
 
     let itemCosts = {};
     let completedRows = [];
     let hasEmptyCost = false;
-    let hasCheckedItems = false;
     
     document.querySelectorAll('.existing-item').forEach(el => {
         let cb = el.querySelector('.item-check');
         if (cb && cb.checked) {
-            hasCheckedItems = true;
             let row = cb.value;
             completedRows.push(String(row));
             
@@ -337,17 +396,11 @@
     let newItems = [];
     let hasEmptyNew = false;
     document.querySelectorAll('.new-item-row').forEach(row => {
-        hasCheckedItems = true; 
         let name = row.querySelector('.new-item-name').value;
         let cost = row.querySelector('.new-item-cost').value;
         if(!name || !cost) hasEmptyNew = true;
         newItems.push({ name: name, cost: Number(cost) || 0 });
     });
-
-    if(!hasCheckedItems) {
-       Swal.fire('แจ้งเตือน', 'คุณยังไม่ได้เลือกรายการที่ซ่อมเสร็จเลย หากยังทำไม่เสร็จกรุณากด "พักงาน" หรือ "ถอยกลับ" แทนครับ', 'warning');
-       return;
-    }
 
     if(hasEmptyCost || hasEmptyNew) {
        Swal.fire('แจ้งเตือน', 'กรุณาระบุราคาให้ครบทุกรายการที่เลือกว่าซ่อมเสร็จแล้ว (หากฟรี ให้ใส่ 0)', 'warning');
@@ -367,7 +420,7 @@
        completedRows: completedRows 
     });
     
-    Swal.fire({icon: 'success', title: 'ปิดงานเรียบร้อย', showConfirmButton: false, timer: 1500});
+    Swal.fire({icon: 'success', title: 'อัปเดตเรียบร้อย', showConfirmButton: false, timer: 1500});
     loadJobs();
   }
 
