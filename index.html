@@ -161,7 +161,7 @@
              </div>
              
              <div class="alert alert-warning py-1 px-2 mb-2" style="font-size: 0.75rem;">
-                 <i class="fas fa-info-circle"></i> ปิดสวิตช์รายการที่ยังไม่เสร็จเพื่อค้างงานไว้ หรือกด <strong>ถังขยะ</strong> เพื่อลบรายการที่ไม่ได้ทำ
+                 <i class="fas fa-info-circle"></i> ปิดสวิตช์ หรือกด <strong>ถังขยะ</strong> เพื่อยกเลิกรายการที่ไม่ได้ทำ (รายการจะถูกลบทิ้งและปิดงาน)
              </div>
 
              <div id="mItemsList" class="mb-3 d-flex flex-column gap-2"></div>
@@ -375,13 +375,9 @@
   }
 
   function updateSubmitButtonUI() {
-      let allChecked = true;
       let anyChecked = false;
-      let existingCount = 0;
       
       document.querySelectorAll('.item-check').forEach(cb => {
-          existingCount++;
-          if(!cb.checked) allChecked = false;
           if(cb.checked) anyChecked = true;
       });
       
@@ -390,18 +386,12 @@
       
       let btn = document.getElementById('btnCompleteJob');
       
-      if(existingCount === 0 && !hasNewItems) {
-          btn.innerHTML = '<i class="fas fa-trash-alt me-1"></i> ยืนยันลบรายการทั้งหมด (ยกเลิกใบซ่อม)';
-          btn.className = 'btn btn-danger w-100 fw-bold py-2.5 shadow-sm';
-      } else if(allChecked && !hasNewItems) {
-          btn.innerHTML = '<i class="fas fa-save me-1"></i> บันทึกเสร็จสิ้น (ปิดงานใบซ่อม)';
-          btn.className = 'btn btn-success w-100 fw-bold py-2.5 shadow-sm';
-      } else if(anyChecked) {
-          btn.innerHTML = '<i class="fas fa-sync-alt me-1"></i> บันทึกค้างบางรายการ (ทำบางส่วน)';
-          btn.className = 'btn btn-info w-100 fw-bold py-2.5 shadow-sm text-dark';
+      if(!anyChecked) {
+          btn.innerHTML = '<i class="fas fa-trash-alt me-1"></i> ยืนยันยกเลิกรายการที่เหลือ (ปิดงานใบซ่อม)';
+          btn.className = 'btn btn-danger w-100 fw-bold py-2 shadow-sm fs-6';
       } else {
-          btn.innerHTML = '<i class="fas fa-save me-1"></i> บันทึกรออะไหล่ / พักงานซ่อม';
-          btn.className = 'btn btn-warning w-100 fw-bold py-2.5 shadow-sm text-dark';
+          btn.innerHTML = '<i class="fas fa-save me-1"></i> บันทึกเสร็จสิ้น (ปิดงานใบซ่อม)';
+          btn.className = 'btn btn-success w-100 fw-bold py-2 shadow-sm fs-6';
       }
   }
 
@@ -473,38 +463,27 @@
 
   async function completeJob() {
     let mech = document.getElementById('mMechanic').value;
-    let anyChecked = Array.from(document.querySelectorAll('.item-check')).some(cb => cb.checked);
     let hasNewItems = document.querySelectorAll('.new-item-row').length > 0;
-    let existingCount = document.querySelectorAll('.existing-item').length;
     
-    if (existingCount === 0 && !hasNewItems) {
-        // ยืนยันการลบใบซ่อมทิ้งทั้งหมด
-    } else {
-        if((anyChecked || hasNewItems) && !mech) {
-           Swal.fire('แจ้งเตือน', 'กรุณาระบุ "ชื่อช่าง" ผู้รับผิดชอบงานก่อนกดบันทึก', 'warning');
-           return;
-        }
-
-        if(!anyChecked && !hasNewItems) {
-           updateStatus('รออะไหล่'); 
-           return;
-        }
-    }
-
     let itemCosts = {};
     let completedRows = [];
+    let uncheckedRows = []; 
     let hasEmptyCost = false;
     
     document.querySelectorAll('.existing-item').forEach(el => {
         let cb = el.querySelector('.item-check');
-        if (cb && cb.checked) {
+        if (cb) {
             let row = cb.value;
-            completedRows.push(String(row));
-            
-            let input = el.querySelector('.cost-input');
-            let val = input.value;
-            if(!val) hasEmptyCost = true;
-            itemCosts[row] = Number(val) || 0;
+            if (cb.checked) {
+                completedRows.push(String(row));
+                let input = el.querySelector('.cost-input');
+                let val = input.value;
+                if(!val) hasEmptyCost = true;
+                itemCosts[row] = Number(val) || 0;
+            } else {
+                // หากปิดสวิตช์ ถือว่ายกเลิก/ไม่ได้ทำ ให้ลบทิ้งไปเลย
+                uncheckedRows.push(String(row));
+            }
         }
     });
 
@@ -527,10 +506,20 @@
         }
     });
 
+    let anyChecked = completedRows.length > 0 || hasNewItems;
+
+    if(anyChecked && !mech) {
+       Swal.fire('แจ้งเตือน', 'กรุณาระบุ "ชื่อช่าง" ผู้รับผิดชอบงานก่อนกดบันทึก', 'warning');
+       return;
+    }
+
     if(hasEmptyCost || hasEmptyNew) {
        Swal.fire('แจ้งเตือน', 'กรุณาระบุราคาให้ครบทุกรายการที่เลือกว่าซ่อมเสร็จแล้ว (หากฟรี ให้ใส่ 0)', 'warning');
        return;
     }
+
+    // รวมรายการที่ถูกกดถังขยะ และ รายการที่ปิดสวิตช์ เพื่อส่งไปลบออกพร้อมกัน
+    let allDeletedRows = deletedItems.concat(uncheckedRows);
 
     bootstrap.Modal.getInstance(document.getElementById('jobModal')).hide();
     document.getElementById('loadingOverlay').style.display = 'flex';
@@ -538,12 +527,12 @@
     await callAPI({ 
        action: 'updateJobStatus', 
        jobId: currentJobId, 
-       status: (existingCount === 0 && !hasNewItems) ? 'ลบใบซ่อม' : 'เสร็จสิ้น', 
+       status: anyChecked ? 'เสร็จสิ้น' : 'ลบใบซ่อม', 
        mechanic: mech,
        itemCosts: itemCosts,
        newItems: newItems,
        completedRows: completedRows,
-       deletedRows: deletedItems
+       deletedRows: allDeletedRows
     });
     
     Swal.fire({icon: 'success', title: 'บันทึกอัปเดตข้อมูลแล้ว', showConfirmButton: false, timer: 1200});
