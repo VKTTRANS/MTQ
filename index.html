@@ -143,7 +143,6 @@
 
     jobsData.forEach(job => {
       let statusClass = job.status === 'รอซ่อม' ? 'status-wait' : job.status === 'กำลังซ่อม' ? 'status-doing' : 'status-parts';
-      
       let itemsListHtml = job.items.map(itm => `<div class="item-bullet"><i class="fas fa-wrench fa-sm text-secondary"></i> ${itm.name}</div>`).join('');
 
       let card = `<div class="card mb-3 shadow-sm bg-white job-card ${statusClass}" onclick="openJobModal('${job.jobId}')">
