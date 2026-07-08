@@ -29,7 +29,13 @@
     
     .nav-tabs .nav-link { color: #fff; opacity: 0.7; border: none; padding: 12px 15px; font-size: 0.95rem; }
     .nav-tabs .nav-link.active { opacity: 1; background-color: #f0f2f5; color: #212529; border-radius: 10px 10px 0 0; font-weight: bold; }
-    .item-check:checked { background-color: #198754; border-color: #198754; }
+    
+    /* สไตล์ปรับแต่งสำหรับหน้าจอเลือกสถานะรายรายการบนมือถือ */
+    .btn-check:checked + .btn-outline-primary { background-color: #0d6efd; color: white; }
+    .btn-check:checked + .btn-outline-warning { background-color: #ffc107; color: black; }
+    .btn-check:checked + .btn-outline-success { background-color: #198754; color: white; }
+    .btn-check:checked + .btn-outline-danger { background-color: #dc3545; color: white; }
+    .btn-check:checked + .btn-outline-secondary { background-color: #6c757d; color: white; }
 
     @media (max-width: 767.98px) {
       .kanban-container { display: block; height: auto; padding: 10px; }
@@ -133,46 +139,40 @@
 
 </div>
 
+<!-- Modal สำหรับจัดการสถานะรายรายการแบบเจาะจง -->
 <div class="modal fade" id="jobModal" tabindex="-1" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
       <div class="modal-header bg-dark text-white py-2 px-3">
-        <h6 class="modal-title fw-bold"><i class="fas fa-wrench text-warning me-1"></i> จัดการใบแจ้งซ่อม</h6>
+        <h6 class="modal-title fw-bold"><i class="fas fa-wrench text-warning me-1"></i> อัปเดตรายการซ่อม</h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body bg-light p-3">
+      <div class="modal-body bg-light p-2 p-md-3">
+        
         <div class="text-center mb-3 bg-white p-2 rounded-3 border shadow-sm">
-           <h1 id="mPlate" class="fw-bold text-primary mb-0"></h1>
+           <h2 id="mPlate" class="fw-bold text-primary mb-0"></h2>
            <span id="mJobId" class="badge bg-secondary my-1 fs-6 font-monospace"></span>
            <div id="mMile" class="small fw-bold text-muted"></div>
         </div>
 
-        <div class="row g-2 mb-3">
-           <div class="col-4"><button class="btn btn-primary btn-sm w-100 fw-bold py-2 shadow-sm" onclick="updateStatus('กำลังซ่อม')"><i class="fas fa-play d-block mb-1"></i> เริ่มซ่อม</button></div>
-           <div class="col-4"><button class="btn btn-warning btn-sm w-100 fw-bold py-2 shadow-sm text-dark" onclick="updateStatus('รออะไหล่')"><i class="fas fa-pause d-block mb-1"></i> รออะไหล่</button></div>
-           <div class="col-4"><button class="btn btn-secondary btn-sm w-100 fw-bold py-2 shadow-sm" onclick="updateStatus('รอซ่อม')"><i class="fas fa-undo d-block mb-1"></i> ถอยกลับ</button></div>
+        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+            <h6 class="fw-bold text-dark m-0">รายการซ่อมบำรุง</h6>
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 fw-bold" onclick="addExtraJobItem()"><i class="fas fa-plus"></i> เพิ่มรายการ</button>
         </div>
 
-        <div class="card border-success shadow-sm rounded-3">
-           <div class="card-body p-3">
-             <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
-               <h6 class="fw-bold text-success m-0"><i class="fas fa-check-circle"></i> รายการซ่อมบำรุง</h6>
-               <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 fw-bold" onclick="addExtraJobItem()"><i class="fas fa-plus"></i> เพิ่มรายการใหม่</button>
-             </div>
-             
-             <div class="alert alert-warning py-1 px-2 mb-2" style="font-size: 0.75rem;">
-                 <i class="fas fa-info-circle"></i> ปิดสวิตช์ หรือกด <strong>ถังขยะ</strong> เพื่อยกเลิกรายการที่ไม่ได้ทำ (รายการจะถูกลบทิ้งและปิดงาน)
-             </div>
+        <div id="mItemsList" class="mb-3 d-flex flex-column gap-2"></div>
 
-             <div id="mItemsList" class="mb-3 d-flex flex-column gap-2"></div>
-
-             <div class="mb-3">
-               <label class="form-label small fw-bold text-dark mb-1">ชื่อช่างผู้ซ่อม *</label>
-               <input type="text" id="mMechanic" class="form-control form-control-sm border-success" placeholder="กรอกชื่อช่าง">
-             </div>
-             <button id="btnCompleteJob" class="btn btn-success w-100 fw-bold py-2 shadow-sm fs-6" onclick="completeJob()"><i class="fas fa-save me-1"></i> บันทึกเสร็จสิ้น</button>
-           </div>
+        <div class="card shadow-sm border-0 mb-3">
+            <div class="card-body p-3">
+               <label class="form-label small fw-bold text-dark mb-1">ชื่อช่างผู้ดำเนินการ</label>
+               <input type="text" id="mMechanic" class="form-control border-secondary" placeholder="ระบุชื่อช่าง (บังคับถ้ามีรายการที่เสร็จแล้ว)">
+            </div>
         </div>
+
+      </div>
+      <div class="modal-footer bg-white py-2">
+         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+         <button type="button" class="btn btn-success fw-bold px-4" onclick="submitJobUpdate()"><i class="fas fa-save me-1"></i> บันทึกข้อมูล</button>
       </div>
     </div>
   </div>
@@ -193,7 +193,6 @@
   let historyData = [];
   let currentJobId = null;
   let currentActiveColumn = 'wait';
-  let deletedItems = []; 
 
   window.onload = loadJobs;
 
@@ -228,14 +227,15 @@
 
     jobsData.forEach(job => {
       let statusClass = job.status === 'รอซ่อม' ? 'status-wait' : job.status === 'กำลังซ่อม' ? 'status-doing' : 'status-parts';
-      let doneCount = job.items.filter(i => i.isDone).length;
+      let doneCount = job.items.filter(i => i.status === 'done').length;
       let totalCount = job.items.length;
       
       let itemsListHtml = job.items.map(itm => {
-          if(itm.isDone) {
+          if(itm.status === 'done') {
               return `<div class="item-bullet text-success opacity-75"><i class="fas fa-check-circle fa-sm"></i> <del class="text-truncate">${itm.name}</del></div>`;
           } else {
-              return `<div class="item-bullet text-dark"><i class="fas fa-wrench fa-sm text-secondary"></i> <span class="text-truncate">${itm.name}</span></div>`;
+              let icon = itm.status === 'parts' ? '<i class="fas fa-box-open fa-sm text-warning"></i>' : '<i class="fas fa-wrench fa-sm text-secondary"></i>';
+              return `<div class="item-bullet text-dark">${icon} <span class="text-truncate">${itm.name}</span></div>`;
           }
       }).join('');
 
@@ -296,103 +296,110 @@
 
   function openJobModal(id) {
     currentJobId = id;
-    deletedItems = []; 
     let job = jobsData.find(j => j.jobId === id);
     document.getElementById('mPlate').innerText = job.plate;
     document.getElementById('mJobId').innerText = job.jobId;
     document.getElementById('mMile').innerText = "เลขไมล์: " + job.mile.toLocaleString() + " กม.";
     
-    let itemsHtml = `<div class="list-group list-group-flush border rounded-3" id="mItemsContainer">`;
+    let itemsHtml = ``;
     job.items.forEach(itm => {
-        if(itm.isDone) {
-            itemsHtml += `
-            <div class="list-group-item bg-success bg-opacity-10 border-success p-2 px-3 small">
-               <div class="d-flex justify-content-between align-items-center">
-                   <div class="fw-bold text-success m-0"><i class="fas fa-check-circle me-1"></i> ${itm.name}</div>
-                   <span class="badge bg-success">เสร็จแล้ว</span>
-               </div>
-               <div class="text-success small mt-1">ราคาอะไหล่/ค่าซ่อม: ${itm.cost.toLocaleString()} บาท</div>
-            </div>`;
-        } else {
-            itemsHtml += `
-            <div class="list-group-item bg-white existing-item p-2 px-3" id="item-row-${itm.row}">
-               <div class="d-flex justify-content-between align-items-center mb-2">
-                   <div class="form-check form-switch m-0 d-flex align-items-center">
-                       <input class="form-check-input item-check me-2" type="checkbox" role="switch" value="${itm.row}" id="chk-${itm.row}" onchange="toggleItemCost(this, ${itm.row})" checked style="width: 2.3em; height: 1.1em; cursor: pointer;">
-                       <label class="form-check-label fw-bold text-dark small" for="chk-${itm.row}" style="cursor: pointer;">${itm.name}</label>
-                   </div>
-                   <button class="btn btn-sm btn-outline-danger py-0 px-2 rounded-2" onclick="markItemForDeletion(${itm.row})" title="ลบรายการนี้"><i class="fas fa-trash-alt"></i></button>
-               </div>
-               <div class="input-group input-group-sm">
-                 <span class="input-group-text bg-light border-secondary small">ราคา</span>
-                 <input type="number" class="form-control cost-input border-secondary fs-6 py-1" id="cost-input-${itm.row}" data-row="${itm.row}" placeholder="0" required>
-                 <span class="input-group-text bg-light border-secondary small">บาท</span>
-               </div>
-            </div>`;
-        }
+        
+        let displayCost = (itm.status === 'done') ? '' : 'd-none';
+        
+        itemsHtml += `
+        <div class="card mb-3 shadow-sm border-0 item-card" data-row="${itm.row}">
+          <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+             <span class="fw-bold text-dark"><i class="fas fa-caret-right text-muted"></i> ${itm.name}</span>
+          </div>
+          <div class="card-body p-2 bg-light">
+             <div class="row g-1 mb-2">
+                <div class="col-6">
+                   <input type="radio" class="btn-check status-radio" name="st-${itm.row}" id="st-wait-${itm.row}" value="wait" ${itm.status==='wait'?'checked':''}>
+                   <label class="btn btn-outline-secondary btn-sm w-100 fw-bold" for="st-wait-${itm.row}">รอซ่อม</label>
+                </div>
+                <div class="col-6">
+                   <input type="radio" class="btn-check status-radio" name="st-${itm.row}" id="st-doing-${itm.row}" value="doing" ${itm.status==='doing'?'checked':''}>
+                   <label class="btn btn-outline-primary btn-sm w-100 fw-bold" for="st-doing-${itm.row}">กำลังซ่อม</label>
+                </div>
+                <div class="col-6">
+                   <input type="radio" class="btn-check status-radio" name="st-${itm.row}" id="st-parts-${itm.row}" value="parts" ${itm.status==='parts'?'checked':''}>
+                   <label class="btn btn-outline-warning btn-sm w-100 fw-bold" for="st-parts-${itm.row}">รออะไหล่</label>
+                </div>
+                <div class="col-6">
+                   <input type="radio" class="btn-check status-radio" name="st-${itm.row}" id="st-done-${itm.row}" value="done" ${itm.status==='done'?'checked':''}>
+                   <label class="btn btn-outline-success btn-sm w-100 fw-bold" for="st-done-${itm.row}">เสร็จแล้ว</label>
+                </div>
+                <div class="col-12 mt-1">
+                   <input type="radio" class="btn-check status-radio text-danger" name="st-${itm.row}" id="st-del-${itm.row}" value="delete">
+                   <label class="btn btn-outline-danger btn-sm w-100" for="st-del-${itm.row}"><i class="fas fa-trash-alt"></i> ลบทิ้ง (ไม่ได้ทำ)</label>
+                </div>
+             </div>
+             
+             <div class="cost-input-wrapper ${displayCost}">
+                <div class="input-group input-group-sm">
+                   <span class="input-group-text bg-white">ราคา</span>
+                   <input type="number" class="form-control item-cost border-success text-success fw-bold" placeholder="ระบุราคา" value="${itm.cost}">
+                   <span class="input-group-text bg-white">บาท</span>
+                </div>
+             </div>
+          </div>
+        </div>`;
     });
-    itemsHtml += `</div>`;
     
     document.getElementById('mItemsList').innerHTML = itemsHtml;
     document.getElementById('mMechanic').value = '';
     
-    updateSubmitButtonUI();
+    // ตั้งค่า Event เผื่อเวลาคลิกเปลี่ยนสถานะ แล้วให้ช่องกรอกราคาโผล่/ซ่อน
+    document.querySelectorAll('.status-radio').forEach(radio => {
+        radio.addEventListener('change', function() {
+            let wrapper = this.closest('.card-body').querySelector('.cost-input-wrapper');
+            let costInput = wrapper.querySelector('.item-cost');
+            if(this.value === 'done') {
+                wrapper.classList.remove('d-none');
+            } else {
+                wrapper.classList.add('d-none');
+            }
+        });
+    });
+
     new bootstrap.Modal(document.getElementById('jobModal')).show();
   }
 
-  function markItemForDeletion(row) {
-      Swal.fire({
-          title: 'ยืนยันลบรายการนี้?',
-          text: "รายการนี้จะไม่ถูกซ่อมและจะถูกลบออกจากใบแจ้งซ่อมเมื่อกดบันทึก",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: 'ใช่, ลบเลย'
-      }).then((result) => {
-          if (result.isConfirmed) {
-              deletedItems.push(row);
-              let rowEl = document.getElementById('item-row-' + row);
-              if(rowEl) rowEl.remove();
-              updateSubmitButtonUI();
-          }
-      });
-  }
-
-  function toggleItemCost(checkbox, row) {
-      let costInput = document.getElementById('cost-input-' + row);
-      if (checkbox.checked) {
-          costInput.disabled = false;
-          costInput.required = true;
-          costInput.closest('.existing-item').classList.remove('opacity-50');
-      } else {
-          costInput.disabled = true;
-          costInput.required = false;
-          costInput.value = "";
-          costInput.closest('.existing-item').classList.add('opacity-50');
-      }
-      updateSubmitButtonUI();
-  }
-
-  function updateSubmitButtonUI() {
-      let anyChecked = false;
+  function addExtraJobItem() {
+      const container = document.getElementById('mItemsList');
+      if(!container) return;
       
-      document.querySelectorAll('.item-check').forEach(cb => {
-          if(cb.checked) anyChecked = true;
-      });
-      
-      let hasNewItems = document.querySelectorAll('.new-item-row').length > 0;
-      if(hasNewItems) anyChecked = true;
-      
-      let btn = document.getElementById('btnCompleteJob');
-      
-      if(!anyChecked) {
-          btn.innerHTML = '<i class="fas fa-trash-alt me-1"></i> ยืนยันยกเลิกรายการที่เหลือ (ปิดงานใบซ่อม)';
-          btn.className = 'btn btn-danger w-100 fw-bold py-2 shadow-sm fs-6';
-      } else {
-          btn.innerHTML = '<i class="fas fa-save me-1"></i> บันทึกเสร็จสิ้น (ปิดงานใบซ่อม)';
-          btn.className = 'btn btn-success w-100 fw-bold py-2 shadow-sm fs-6';
-      }
+      const newItemHtml = `
+        <div class="card mb-3 shadow-sm border-primary new-item-card">
+           <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
+              <span class="small fw-bold"><i class="fas fa-plus-circle"></i> รายการตรวจพบเพิ่มเติม</span>
+              <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" onclick="this.closest('.new-item-card').remove()"></button>
+           </div>
+           <div class="card-body p-2 bg-light">
+              <select class="form-select form-select-sm mb-2 new-item-select border-primary" onchange="toggleExtraCustomInput(this)">
+                 <option value="" disabled selected>เลือกรายการที่ช่างซ่อมเพิ่ม...</option>
+                 <option value="ถ่ายน้ำมันเครื่อง">ถ่ายน้ำมันเครื่อง</option>
+                 <option value="เปลี่ยนกรองน้ำมันเครื่อง">เปลี่ยนกรองน้ำมันเครื่อง</option>
+                 <option value="เป่ากรองอากาศ">เป่ากรองอากาศ</option>
+                 <option value="เป่ากรองแอร์">เป่ากรองแอร์</option>
+                 <option value="เป่าหน้าเครื่อง">เป่าหน้าเครื่อง</option>
+                 <option value="เช็คน้ำกลั่น">เช็คน้ำกลั่น</option>
+                 <option value="เช็คลมยาง">เช็คลมยาง</option>
+                 <option value="อัดจารบี">อัดจารบี</option>
+                 <option value="สลับยาง">สลับยาง</option>
+                 <option value="เปลี่ยนยาง">เปลี่ยนยาง</option>
+                 <option value="other">อื่นๆ (ระบุเอง)</option>
+              </select>
+              <input type="text" class="form-control form-control-sm mb-2 d-none new-item-custom border-warning" placeholder="ระบุรายการเพิ่มเติม">
+              
+              <div class="input-group input-group-sm">
+                 <span class="input-group-text bg-white text-primary border-primary">ราคา</span>
+                 <input type="number" class="form-control new-item-cost border-primary text-primary fw-bold" placeholder="ระบุราคา">
+                 <span class="input-group-text bg-white border-primary">บาท</span>
+              </div>
+           </div>
+        </div>`;
+      container.insertAdjacentHTML('beforeend', newItemHtml);
   }
 
   function toggleExtraCustomInput(selectElem) {
@@ -401,142 +408,83 @@
       
       if (needsDetails) {
           customInput.classList.remove('d-none');
-          customInput.required = true;
           customInput.focus();
-          if(selectElem.value !== "other") {
-              customInput.placeholder = "ระบุรายละเอียด (เช่น ตำแหน่งล้อ/จุดที่ทำ)";
-          } else {
-              customInput.placeholder = "ระบุรายการซ่อมเพิ่มเติม";
-          }
       } else {
           customInput.classList.add('d-none');
-          customInput.required = false;
       }
   }
 
-  function addExtraJobItem() {
-      const container = document.getElementById('mItemsContainer');
-      if(!container) return;
+  async function submitJobUpdate() {
+      let mechanic = document.getElementById('mMechanic').value.trim();
+      let updates = [];
+      let deletes = [];
+      let newItems = [];
+      let hasError = false;
+
+      // ดึงข้อมูลรายการเดิม
+      document.querySelectorAll('.item-card').forEach(card => {
+          let row = card.getAttribute('data-row');
+          let selectedStatus = card.querySelector('.status-radio:checked').value;
+          let cost = card.querySelector('.item-cost').value;
+
+          if (selectedStatus === 'delete') {
+              deletes.push(row);
+          } else {
+              if(selectedStatus === 'done' && cost === '') {
+                  hasError = true; // บังคับให้ใส่ราคา (ถ้าฟรีให้ใส่ 0)
+              }
+              updates.push({
+                  row: row,
+                  status: selectedStatus,
+                  cost: Number(cost) || 0
+              });
+          }
+      });
+
+      // ดึงข้อมูลรายการใหม่
+      document.querySelectorAll('.new-item-card').forEach(card => {
+          let selVal = card.querySelector('.new-item-select').value;
+          let custVal = card.querySelector('.new-item-custom').value;
+          let cost = card.querySelector('.new-item-cost').value;
+          
+          let name = selVal;
+          if (["other", "สลับยาง", "เปลี่ยนยาง", "อัดจารบี"].includes(selVal) && custVal.trim() !== "") {
+              name = (selVal === "other") ? custVal.trim() : `${selVal} - ${custVal.trim()}`;
+          }
+
+          if(!name || cost === '') {
+              hasError = true;
+          } else {
+              newItems.push({ name: name, cost: Number(cost) || 0 });
+          }
+      });
+
+      if (hasError) {
+          Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุรายละเอียดและ "ราคา" ให้ครบทุกรายการที่ซ่อมเสร็จแล้ว (หากไม่มีค่าใช้จ่ายให้ใส่ 0)', 'warning');
+          return;
+      }
+
+      // เช็คว่าต้องบังคับใส่ชื่อช่างไหม (ถ้ามีรายการไหนที่ เสร็จแล้ว หรือมีรายการใหม่)
+      let anyDone = updates.some(u => u.status === 'done') || newItems.length > 0;
+      if (anyDone && !mechanic) {
+          Swal.fire('ข้อมูลไม่ครบ', 'กรุณาระบุ "ชื่อช่าง" ผู้ดำเนินการ', 'warning');
+          return;
+      }
+
+      bootstrap.Modal.getInstance(document.getElementById('jobModal')).hide();
+      document.getElementById('loadingOverlay').style.display = 'flex';
       
-      const newItemHtml = `
-        <div class="list-group-item bg-white border-primary border-opacity-50 new-item-row position-relative mt-2 shadow-sm p-2 px-3">
-           <button type="button" class="btn-close position-absolute top-0 end-0 m-2" style="font-size: 0.55rem;" onclick="this.closest('.new-item-row').remove(); updateSubmitButtonUI();"></button>
-           <div class="fw-bold text-primary small mb-2"><i class="fas fa-plus-circle"></i> ตรวจพบหน้างานเพิ่ม</div>
-           <div class="row g-2">
-             <div class="col-12">
-               <select class="form-select form-select-sm border-primary new-item-select" required onchange="toggleExtraCustomInput(this); updateSubmitButtonUI();">
-                  <option value="" disabled selected>เลือกรายการ...</option>
-                  <option value="ถ่ายน้ำมันเครื่อง">ถ่ายน้ำมันเครื่อง</option>
-                  <option value="เปลี่ยนกรองน้ำมันเครื่อง">เปลี่ยนกรองน้ำมันเครื่อง</option>
-                  <option value="เป่ากรองอากาศ">เป่ากรองอากาศ</option>
-                  <option value="เป่ากรองแอร์">เป่ากรองแอร์</option>
-                  <option value="เป่าหน้าเครื่อง">เป่าหน้าเครื่อง</option>
-                  <option value="เช็คน้ำกลั่น">เช็คน้ำกลั่น</option>
-                  <option value="เช็คลมยาง">เช็คลมยาง</option>
-                  <option value="อัดจารบี">อัดจารบี</option>
-                  <option value="สลับยาง">สลับยาง</option>
-                  <option value="เปลี่ยนยาง">เปลี่ยนยาง</option>
-                  <option value="other">อื่นๆ (ระบุเอง)</option>
-               </select>
-               <input type="text" class="form-control form-control-sm border-warning new-item-custom d-none mt-2" placeholder="ระบุรายการ/อาการเพิ่มเติม" oninput="updateSubmitButtonUI()">
-             </div>
-             <div class="col-12 mt-2">
-               <div class="input-group input-group-sm border-primary">
-                 <span class="input-group-text text-primary border-primary bg-light small">ราคา</span>
-                 <input type="number" class="form-control new-item-cost border-primary fs-6 py-1" placeholder="0" required oninput="updateSubmitButtonUI()">
-                 <span class="input-group-text border-primary bg-light small">บาท</span>
-               </div>
-             </div>
-           </div>
-        </div>`;
-      container.insertAdjacentHTML('beforeend', newItemHtml);
-      updateSubmitButtonUI();
-  }
-
-  async function updateStatus(newStatus) {
-    bootstrap.Modal.getInstance(document.getElementById('jobModal')).hide();
-    document.getElementById('loadingOverlay').style.display = 'flex';
-    await callAPI({ action: 'updateJobStatus', jobId: currentJobId, status: newStatus, deletedRows: deletedItems });
-    Swal.fire({icon: 'success', title: 'อัปเดตสถานะคิวแล้ว', showConfirmButton: false, timer: 1000});
-    loadJobs();
-  }
-
-  async function completeJob() {
-    let mech = document.getElementById('mMechanic').value;
-    let hasNewItems = document.querySelectorAll('.new-item-row').length > 0;
-    
-    let itemCosts = {};
-    let completedRows = [];
-    let uncheckedRows = []; 
-    let hasEmptyCost = false;
-    
-    document.querySelectorAll('.existing-item').forEach(el => {
-        let cb = el.querySelector('.item-check');
-        if (cb) {
-            let row = cb.value;
-            if (cb.checked) {
-                completedRows.push(String(row));
-                let input = el.querySelector('.cost-input');
-                let val = input.value;
-                if(!val) hasEmptyCost = true;
-                itemCosts[row] = Number(val) || 0;
-            } else {
-                // หากปิดสวิตช์ ถือว่ายกเลิก/ไม่ได้ทำ ให้ลบทิ้งไปเลย
-                uncheckedRows.push(String(row));
-            }
-        }
-    });
-
-    let newItems = [];
-    let hasEmptyNew = false;
-    document.querySelectorAll('.new-item-row').forEach(row => {
-        let sel = row.querySelector('.new-item-select');
-        let selVal = sel ? sel.value : "";
-        let custVal = row.querySelector('.new-item-custom').value;
-        let cost = row.querySelector('.new-item-cost').value;
-        
-        let name = selVal;
-        if (["other", "สลับยาง", "เปลี่ยนยาง", "อัดจารบี"].includes(selVal) && custVal.trim() !== "") {
-            name = (selVal === "other") ? custVal.trim() : `${selVal} - ${custVal.trim()}`;
-        }
-
-        if(!name || !cost) hasEmptyNew = true;
-        if(name) {
-            newItems.push({ name: name, cost: Number(cost) || 0 });
-        }
-    });
-
-    let anyChecked = completedRows.length > 0 || hasNewItems;
-
-    if(anyChecked && !mech) {
-       Swal.fire('แจ้งเตือน', 'กรุณาระบุ "ชื่อช่าง" ผู้รับผิดชอบงานก่อนกดบันทึก', 'warning');
-       return;
-    }
-
-    if(hasEmptyCost || hasEmptyNew) {
-       Swal.fire('แจ้งเตือน', 'กรุณาระบุราคาให้ครบทุกรายการที่เลือกว่าซ่อมเสร็จแล้ว (หากฟรี ให้ใส่ 0)', 'warning');
-       return;
-    }
-
-    // รวมรายการที่ถูกกดถังขยะ และ รายการที่ปิดสวิตช์ เพื่อส่งไปลบออกพร้อมกัน
-    let allDeletedRows = deletedItems.concat(uncheckedRows);
-
-    bootstrap.Modal.getInstance(document.getElementById('jobModal')).hide();
-    document.getElementById('loadingOverlay').style.display = 'flex';
-    
-    await callAPI({ 
-       action: 'updateJobStatus', 
-       jobId: currentJobId, 
-       status: anyChecked ? 'เสร็จสิ้น' : 'ลบใบซ่อม', 
-       mechanic: mech,
-       itemCosts: itemCosts,
-       newItems: newItems,
-       completedRows: completedRows,
-       deletedRows: allDeletedRows
-    });
-    
-    Swal.fire({icon: 'success', title: 'บันทึกอัปเดตข้อมูลแล้ว', showConfirmButton: false, timer: 1200});
-    loadJobs();
+      await callAPI({ 
+         action: 'updateJobStatus', 
+         jobId: currentJobId,
+         mechanic: mechanic,
+         updates: updates,
+         deletes: deletes,
+         newItems: newItems
+      });
+      
+      Swal.fire({icon: 'success', title: 'อัปเดตข้อมูลสำเร็จ', showConfirmButton: false, timer: 1200});
+      loadJobs();
   }
 
   async function loadHistory() {
