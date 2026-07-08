@@ -22,6 +22,7 @@
     .nav-tabs .nav-link { color: #fff; opacity: 0.7; border: none; padding: 12px 20px; }
     .nav-tabs .nav-link.active { opacity: 1; background-color: #f0f2f5; color: #212529; border-radius: 10px 10px 0 0; font-weight: bold; }
     .nav-tabs .nav-link:hover { opacity: 1; }
+    .item-check:checked { background-color: #198754; border-color: #198754; }
   </style>
 </head>
 <body>
@@ -135,6 +136,8 @@
                <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="addExtraJobItem()"><i class="fas fa-plus"></i> เพิ่มรายการช่างตรวจพบ</button>
              </div>
              
+             <div class="alert alert-warning small py-2 px-3"><i class="fas fa-info-circle me-1"></i> หากมีรายการที่ <strong>"ยังไม่เสร็จ/รออะไหล่"</strong> ให้ปิดสวิตช์รายการนั้นไว้ เมื่อกดบันทึกปิดงาน รายการดังกล่าวจะยังคงค้างอยู่ในกระดานให้ทำต่อทีหลังได้ครับ</div>
+
              <div id="mItemsList" class="mb-3"></div>
 
              <div class="mb-3">
@@ -236,10 +239,17 @@
     job.items.forEach(itm => {
         itemsHtml += `
         <div class="list-group-item bg-light existing-item p-3">
-           <div class="fw-bold text-dark mb-2"><i class="fas fa-wrench text-secondary"></i> ${itm.name}</div>
+           <div class="d-flex justify-content-between align-items-center mb-2">
+               <div class="form-check form-switch m-0 d-flex align-items-center">
+                   <input class="form-check-input item-check me-2" type="checkbox" role="switch" value="${itm.row}" id="chk-${itm.row}" onchange="toggleItemCost(this, ${itm.row})" checked style="width: 2.5em; height: 1.2em; cursor: pointer;">
+                   <label class="form-check-label fw-bold text-dark" for="chk-${itm.row}" style="cursor: pointer;">
+                       <i class="fas fa-wrench text-secondary mx-1"></i> ${itm.name}
+                   </label>
+               </div>
+           </div>
            <div class="input-group input-group-sm">
              <span class="input-group-text bg-white border-secondary">ราคา</span>
-             <input type="number" class="form-control cost-input border-secondary" data-row="${itm.row}" placeholder="0" required>
+             <input type="number" class="form-control cost-input border-secondary" id="cost-input-${itm.row}" data-row="${itm.row}" placeholder="0" required>
              <span class="input-group-text bg-white border-secondary">บาท</span>
            </div>
         </div>`;
@@ -250,6 +260,20 @@
     document.getElementById('mMechanic').value = '';
     
     new bootstrap.Modal(document.getElementById('jobModal')).show();
+  }
+
+  function toggleItemCost(checkbox, row) {
+      let costInput = document.getElementById('cost-input-' + row);
+      if (checkbox.checked) {
+          costInput.disabled = false;
+          costInput.required = true;
+          costInput.closest('.existing-item').classList.remove('opacity-50');
+      } else {
+          costInput.disabled = true;
+          costInput.required = false;
+          costInput.value = "";
+          costInput.closest('.existing-item').classList.add('opacity-50');
+      }
   }
 
   function addExtraJobItem() {
@@ -292,24 +316,41 @@
     }
 
     let itemCosts = {};
+    let completedRows = [];
     let hasEmptyCost = false;
-    document.querySelectorAll('.cost-input').forEach(input => {
-        let val = input.value;
-        if(!val) hasEmptyCost = true;
-        itemCosts[input.dataset.row] = Number(val) || 0;
+    let hasCheckedItems = false;
+    
+    document.querySelectorAll('.existing-item').forEach(el => {
+        let cb = el.querySelector('.item-check');
+        if (cb && cb.checked) {
+            hasCheckedItems = true;
+            let row = cb.value;
+            completedRows.push(String(row));
+            
+            let input = el.querySelector('.cost-input');
+            let val = input.value;
+            if(!val) hasEmptyCost = true;
+            itemCosts[row] = Number(val) || 0;
+        }
     });
 
     let newItems = [];
     let hasEmptyNew = false;
     document.querySelectorAll('.new-item-row').forEach(row => {
+        hasCheckedItems = true; 
         let name = row.querySelector('.new-item-name').value;
         let cost = row.querySelector('.new-item-cost').value;
         if(!name || !cost) hasEmptyNew = true;
         newItems.push({ name: name, cost: Number(cost) || 0 });
     });
 
+    if(!hasCheckedItems) {
+       Swal.fire('แจ้งเตือน', 'คุณยังไม่ได้เลือกรายการที่ซ่อมเสร็จเลย หากยังทำไม่เสร็จกรุณากด "พักงาน" หรือ "ถอยกลับ" แทนครับ', 'warning');
+       return;
+    }
+
     if(hasEmptyCost || hasEmptyNew) {
-       Swal.fire('แจ้งเตือน', 'กรุณาระบุรายละเอียดและค่าใช้จ่ายให้ครบทุกรายการ (หากฟรี ให้ใส่ 0)', 'warning');
+       Swal.fire('แจ้งเตือน', 'กรุณาระบุราคาให้ครบทุกรายการที่เลือกว่าซ่อมเสร็จแล้ว (หากฟรี ให้ใส่ 0)', 'warning');
        return;
     }
 
@@ -322,7 +363,8 @@
        status: 'เสร็จสิ้น', 
        mechanic: mech,
        itemCosts: itemCosts,
-       newItems: newItems
+       newItems: newItems,
+       completedRows: completedRows 
     });
     
     Swal.fire({icon: 'success', title: 'ปิดงานเรียบร้อย', showConfirmButton: false, timer: 1500});
