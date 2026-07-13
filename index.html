@@ -8,27 +8,45 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { background-color: #f0f2f5; font-family: 'Kanit', sans-serif; -webkit-user-select: none; user-select: none; }
-    .navbar { background: #212529; }
+    body { background-color: #f4f6f9; font-family: 'Kanit', sans-serif; -webkit-user-select: none; user-select: none; overflow: hidden; }
+    .navbar { background: #1a1d20; }
     
-    .kanban-container { display: flex; gap: 15px; padding: 15px; overflow-x: auto; height: calc(100vh - 150px); }
-    .kanban-col { min-width: 320px; flex: 1; background: #e9ecef; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; height: 100%; }
-    .kanban-scroll-zone { flex: 1; overflow-y: auto; padding-right: 2px; }
-    .kanban-header { font-weight: 600; font-size: 1.1rem; padding-bottom: 10px; border-bottom: 2px solid #ccc; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .search-bar-container { background: #fff; padding: 12px 20px; border-bottom: 1px solid #e0e0e0; display: flex; gap: 10px; align-items: center; z-index: 10; position: relative; }
+    .search-input-group { flex: 1; max-width: 500px; position: relative; }
+    .search-input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
+    .search-input-group input { padding-left: 40px; border-radius: 30px; background-color: #f0f2f5; border: 1px solid transparent; box-shadow: none; transition: 0.3s; }
+    .search-input-group input:focus { background-color: #fff; border-color: #0d6efd; box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15); }
+    
+    .kanban-container { display: flex; gap: 20px; padding: 20px; overflow-x: auto; height: calc(100vh - 120px); background: #f4f6f9; }
+    .kanban-col { min-width: 340px; flex: 1; background: #fff; border-radius: 12px; padding: 0; display: flex; flex-direction: column; height: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #edf1f5; }
+    
+    .kanban-header { font-weight: 600; font-size: 1.1rem; padding: 15px 20px; border-bottom: 2px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fff; border-radius: 12px 12px 0 0; }
+    .kanban-header.wait-header { border-bottom-color: #6c757d; color: #495057; }
+    .kanban-header.doing-header { border-bottom-color: #0d6efd; color: #0d6efd; }
+    .kanban-header.parts-header { border-bottom-color: #ffc107; color: #d39e00; }
+    
+    .kanban-scroll-zone { flex: 1; overflow-y: auto; padding: 15px; background: #f8f9fa; border-radius: 0 0 12px 12px; }
+    
+    .kanban-scroll-zone::-webkit-scrollbar { width: 6px; }
+    .kanban-scroll-zone::-webkit-scrollbar-track { background: transparent; }
+    .kanban-scroll-zone::-webkit-scrollbar-thumb { background-color: #d1d5db; border-radius: 10px; }
     
     .mobile-switcher { display: none; background: #fff; padding: 10px; border-bottom: 1px solid #dee2e6; position: sticky; top: 0; z-index: 100; }
     .mobile-switcher .btn { border-radius: 20px; font-weight: 600; font-size: 0.9rem; }
     
-    .job-card { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border-left: 6px solid; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-    .status-wait { border-color: #6c757d; }
-    .status-doing { border-color: #0d6efd; }
-    .status-parts { border-color: #ffc107; }
+    .job-card { background: #fff; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border-left: 5px solid; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-top: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee; }
+    .job-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .status-wait { border-left-color: #6c757d; }
+    .status-doing { border-left-color: #0d6efd; }
+    .status-parts { border-left-color: #ffc107; }
     
-    #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
-    .item-bullet { margin-bottom: 6px; font-size: 0.95rem; color: #333; display: flex; align-items: center; gap: 8px; }
+    #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+    
+    .item-bullet { margin-bottom: 5px; font-size: 0.9rem; color: #444; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; }
+    .item-bullet i { margin-top: 3px; }
     
     .nav-tabs .nav-link { color: #fff; opacity: 0.7; border: none; padding: 12px 15px; font-size: 0.95rem; }
-    .nav-tabs .nav-link.active { opacity: 1; background-color: #f0f2f5; color: #212529; border-radius: 10px 10px 0 0; font-weight: bold; }
+    .nav-tabs .nav-link.active { opacity: 1; background-color: #f4f6f9; color: #212529; border-radius: 10px 10px 0 0; font-weight: bold; }
     
     .btn-check:checked + .btn-outline-primary { background-color: #0d6efd; color: white; }
     .btn-check:checked + .btn-outline-warning { background-color: #ffc107; color: black; }
@@ -36,12 +54,15 @@
     .btn-check:checked + .btn-outline-secondary { background-color: #6c757d; color: white; }
 
     @media (max-width: 767.98px) {
+      body { overflow: auto; }
+      .search-bar-container { padding: 10px 15px; }
       .kanban-container { display: block; height: auto; padding: 10px; }
-      .kanban-col { display: none; width: 100%; min-width: 100%; height: calc(100vh - 150px); background: #f0f2f5; padding: 0; }
+      .kanban-col { display: none; width: 100%; min-width: 100%; height: calc(100vh - 180px); background: transparent; border: none; box-shadow: none; padding: 0; }
       .kanban-col.mobile-active { display: flex; }
       .kanban-header { display: none; }
+      .kanban-scroll-zone { padding: 0; background: transparent; }
       .mobile-switcher { display: flex; justify-content: space-between; gap: 5px; }
-      .job-card { margin-bottom: 10px; }
+      .job-card { margin-bottom: 12px; }
       .nav-tabs .nav-link { padding: 10px 8px; font-size: 0.85rem; }
       .navbar-brand { font-size: 1.1rem; }
     }
@@ -66,6 +87,15 @@
 <div class="tab-content" id="mainTabContent">
   
   <div class="tab-pane fade show active" id="tabQueue" role="tabpanel">
+    
+    <div class="search-bar-container shadow-sm">
+      <div class="search-input-group">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchPlate" class="form-control" placeholder="พิมพ์ทะเบียนรถ, เลขใบงาน หรือรายการซ่อม..." onkeyup="filterQueue()">
+      </div>
+      <button class="btn btn-dark btn-sm rounded-pill px-3 d-none d-md-block" onclick="loadJobs()"><i class="fas fa-sync-alt me-1"></i> โหลดข้อมูลใหม่</button>
+    </div>
+
     <div class="mobile-switcher shadow-sm">
       <button class="btn btn-sm btn-secondary w-100 position-relative active" id="mBtnWait" onclick="switchMobileColumn('wait')">
         รอซ่อม <span class="badge bg-dark rounded-pill ms-1" id="mCntWait">0</span>
@@ -81,49 +111,52 @@
 
     <div class="kanban-container">
       <div class="kanban-col mobile-active" id="colWaitWrapper">
-        <div class="kanban-header text-secondary">
-           <span><i class="fas fa-clipboard-list"></i> รอซ่อม (<span id="cntWait">0</span>)</span>
-           <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="loadJobs()"><i class="fas fa-sync-alt"></i></button>
+        <div class="kanban-header wait-header">
+           <span><i class="fas fa-clipboard-list me-1"></i> รอซ่อม (<span id="cntWait">0</span>)</span>
         </div>
         <div class="kanban-scroll-zone" id="colWait"></div>
       </div>
       
       <div class="kanban-col" id="colDoingWrapper">
-        <div class="kanban-header text-primary border-primary"><i class="fas fa-cogs"></i> กำลังซ่อม (<span id="cntDoing">0</span>)</div>
+        <div class="kanban-header doing-header">
+           <span><i class="fas fa-cogs me-1"></i> กำลังซ่อม (<span id="cntDoing">0</span>)</span>
+        </div>
         <div class="kanban-scroll-zone" id="colDoing"></div>
       </div>
       
       <div class="kanban-col" id="colPartsWrapper">
-        <div class="kanban-header text-warning border-warning"><i class="fas fa-box-open"></i> รออะไหล่ (<span id="cntParts">0</span>)</div>
+        <div class="kanban-header parts-header">
+           <span><i class="fas fa-box-open me-1"></i> รออะไหล่ (<span id="cntParts">0</span>)</span>
+        </div>
         <div class="kanban-scroll-zone" id="colParts"></div>
       </div>
     </div>
   </div>
 
   <div class="tab-pane fade" id="tabHistory" role="tabpanel">
-    <div class="container-fluid py-2 px-2">
+    <div class="container-fluid py-3 px-2 px-md-4">
       <div class="card shadow-sm border-0 rounded-3">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center py-2 px-3">
-          <h6 class="m-0 fw-bold text-dark"><i class="fas fa-search me-1 text-muted"></i>ค้นหาประวัติ</h6>
-          <select id="historyPlateFilter" class="form-select form-select-sm w-auto fw-bold text-primary border-primary rounded-pill" onchange="filterHistory()">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 px-4 border-bottom">
+          <h6 class="m-0 fw-bold text-dark fs-5"><i class="fas fa-search me-2 text-muted"></i>ค้นหาประวัติการซ่อม</h6>
+          <select id="historyPlateFilter" class="form-select form-select-sm w-auto fw-bold text-primary border-primary rounded-pill px-3" onchange="filterHistory()">
             <option value="">กำลังโหลด...</option>
           </select>
         </div>
         <div class="card-body p-0">
-          <div class="table-responsive" style="max-height: calc(100vh - 160px);">
-            <table class="table table-hover table-striped mb-0 text-nowrap align-middle small">
+          <div class="table-responsive" style="max-height: calc(100vh - 180px); overflow-y: auto;">
+            <table class="table table-hover table-striped mb-0 text-nowrap align-middle">
               <thead class="table-dark sticky-top">
                 <tr>
-                  <th>วันที่เสร็จ</th>
-                  <th>ทะเบียน</th>
-                  <th class="text-end">เลขไมล์</th>
-                  <th>รายการซ่อม</th>
-                  <th>ผู้ซ่อม</th>
-                  <th class="text-end">ราคา (฿)</th>
+                  <th class="py-3 px-4">วันที่เสร็จ</th>
+                  <th class="py-3 px-4">ทะเบียนรถ</th>
+                  <th class="py-3 px-4 text-end">เลขไมล์</th>
+                  <th class="py-3 px-4">รายการซ่อม</th>
+                  <th class="py-3 px-4">ผู้ซ่อม</th>
+                  <th class="py-3 px-4 text-end">ราคา (฿)</th>
                 </tr>
               </thead>
               <tbody id="historyTableBody">
-                <tr><td colspan="6" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary mb-2"></div><br>กำลังโหลด...</td></tr>
+                <tr><td colspan="6" class="text-center py-5 text-muted"><div class="spinner-border text-primary mb-3"></div><br>กำลังโหลด...</td></tr>
               </tbody>
             </table>
           </div>
@@ -137,44 +170,44 @@
 <div class="modal fade" id="jobModal" tabindex="-1" data-bs-backdrop="static">
   <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
-      <div class="modal-header bg-dark text-white py-2 px-3">
-        <h6 class="modal-title fw-bold"><i class="fas fa-wrench text-warning me-1"></i> อัปเดตรายการซ่อม</h6>
+      <div class="modal-header bg-dark text-white py-3 px-4">
+        <h5 class="modal-title fw-bold"><i class="fas fa-wrench text-warning me-2"></i> อัปเดตสถานะงานซ่อม</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body bg-light p-2 p-md-3">
+      <div class="modal-body bg-light p-3 p-md-4">
         
-        <div class="text-center mb-3 bg-white p-2 rounded-3 border shadow-sm">
-           <h2 id="mPlate" class="fw-bold text-primary mb-0"></h2>
-           <span id="mJobId" class="badge bg-secondary my-1 fs-6 font-monospace"></span>
-           <div id="mMile" class="small fw-bold text-muted"></div>
+        <div class="text-center mb-4 bg-white p-3 rounded-3 border shadow-sm">
+           <h2 id="mPlate" class="fw-bold text-primary mb-1 display-6"></h2>
+           <span id="mJobId" class="badge bg-secondary mb-2 fs-6 font-monospace"></span>
+           <div id="mMile" class="fw-bold text-muted"><i class="fas fa-tachometer-alt me-1"></i> เลขไมล์: -</div>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-            <h6 class="fw-bold text-dark m-0">รายการซ่อมบำรุง</h6>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="fw-bold text-dark m-0 fs-5">รายการตรวจเช็ค / ซ่อมบำรุง</h6>
             <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-sm" onclick="addExtraJobItem()"><i class="fas fa-plus"></i> เพิ่มรายการ</button>
         </div>
 
-        <div id="mItemsList" class="mb-3 d-flex flex-column gap-2"></div>
+        <div id="mItemsList" class="mb-4 d-flex flex-column gap-3"></div>
 
-        <div class="card shadow-sm border-0 mb-3">
-            <div class="card-body p-3">
-               <label class="form-label small fw-bold text-dark mb-1">ชื่อช่างผู้ดำเนินการ</label>
-               <input type="text" id="mMechanic" class="form-control border-secondary form-control-lg" placeholder="ระบุชื่อช่าง">
+        <div class="card shadow-sm border-0 bg-white">
+            <div class="card-body p-4">
+               <label class="form-label fw-bold text-dark mb-2">ชื่อช่างผู้ดำเนินการซ่อม</label>
+               <input type="text" id="mMechanic" class="form-control border-secondary form-control-lg bg-light" placeholder="ระบุชื่อช่างที่รับผิดชอบ">
             </div>
         </div>
 
       </div>
-      <div class="modal-footer bg-white py-3">
-         <button type="button" class="btn btn-light border fw-bold w-25" data-bs-dismiss="modal">ยกเลิก</button>
-         <button type="button" class="btn btn-success fw-bold w-50" onclick="submitJobUpdate()"><i class="fas fa-save me-1"></i> บันทึกข้อมูล</button>
+      <div class="modal-footer bg-white py-3 px-4 border-top">
+         <button type="button" class="btn btn-light border fw-bold w-25 py-2" data-bs-dismiss="modal">ยกเลิก</button>
+         <button type="button" class="btn btn-success fw-bold w-50 py-2" onclick="submitJobUpdate()"><i class="fas fa-save me-2"></i> บันทึกข้อมูล</button>
       </div>
     </div>
   </div>
 </div>
 
 <div id="loadingOverlay">
-  <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 3.5rem;"></div>
-  <h6 class="mt-2 text-secondary fw-bold">กำลังโหลดข้อมูล...</h6>
+  <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+  <h5 class="mt-3 text-secondary fw-bold">กำลังประมวลผลข้อมูล...</h5>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -207,6 +240,7 @@
     jobsData = await callAPI({ action: 'getMechanicJobs' });
     document.getElementById('loadingOverlay').style.display = 'none';
     renderBoard();
+    filterQueue(); 
     switchMobileColumn(currentActiveColumn);
   }
 
@@ -216,7 +250,6 @@
     const colP = document.getElementById('colParts');
 
     colW.innerHTML = ''; colD.innerHTML = ''; colP.innerHTML = '';
-    let cW = 0, cD = 0, cP = 0;
 
     jobsData.forEach(job => {
       let statusClass = job.status === 'รอซ่อม' ? 'status-wait' : job.status === 'กำลังซ่อม' ? 'status-doing' : 'status-parts';
@@ -225,42 +258,58 @@
       
       let itemsListHtml = job.items.map(itm => {
           if(itm.status === 'done') {
-              return `<div class="item-bullet text-success opacity-75"><i class="fas fa-check-circle fa-sm"></i> <del class="text-truncate">${itm.name}</del></div>`;
+              return `<div class="item-bullet text-success opacity-75"><i class="fas fa-check-circle"></i> <del class="text-truncate">${itm.name}</del></div>`;
           } else {
-              let icon = itm.status === 'parts' ? '<i class="fas fa-box-open fa-sm text-warning"></i>' : '<i class="fas fa-wrench fa-sm text-secondary"></i>';
-              return `<div class="item-bullet text-dark">${icon} <span class="text-truncate">${itm.name}</span></div>`;
+              let icon = itm.status === 'parts' ? '<i class="fas fa-box-open text-warning"></i>' : '<i class="fas fa-wrench text-secondary"></i>';
+              return `<div class="item-bullet text-dark">${icon} <span>${itm.name}</span></div>`;
           }
       }).join('');
 
-      let card = `<div class="card mb-2 shadow-sm bg-white job-card ${statusClass}" onclick="openJobModal('${job.jobId}')">
-                    <div class="card-body p-3">
-                      <div class="d-flex justify-content-between align-items-center mb-1">
-                         <h4 class="fw-bold text-dark m-0">${job.plate}</h4>
+      let card = `<div class="job-card ${statusClass}" onclick="openJobModal('${job.jobId}')">
+                    <div class="p-3">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                         <h4 class="fw-bold text-dark m-0 fs-5">${job.plate}</h4>
                          <span class="text-muted small fw-bold">${job.date}</span>
                       </div>
-                      <div class="d-flex justify-content-between align-items-center mb-2">
-                         <span class="badge bg-secondary font-monospace" style="font-size:0.75rem;">${job.jobId}</span>
-                         <span class="badge bg-light text-primary border fw-bold">รายการ (${doneCount}/${totalCount})</span>
+                      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-light">
+                         <span class="badge bg-light text-secondary border font-monospace px-2 py-1">${job.jobId}</span>
+                         <span class="badge bg-light text-primary border fw-bold px-2 py-1">รายการ (${doneCount}/${totalCount})</span>
                       </div>
-                      <div class="p-2 bg-light rounded-3 mb-2 border border-opacity-10 border-secondary" style="max-height: 120px; overflow: hidden;">
+                      <div class="mb-3" style="max-height: 100px; overflow: hidden; position: relative;">
                          ${itemsListHtml}
+                         ${totalCount > 3 ? '<div style="position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: linear-gradient(transparent, #fff);"></div>' : ''}
                       </div>
-                      <div class="text-muted small fw-bold"><i class="fas fa-tachometer-alt"></i> เลขไมล์: ${job.mile.toLocaleString()} กม.</div>
+                      <div class="text-muted small fw-bold bg-light p-2 rounded text-center"><i class="fas fa-tachometer-alt me-1"></i> เลขไมล์: ${job.mile.toLocaleString()} กม.</div>
                     </div>
                   </div>`;
                   
-      if(job.status === 'รอซ่อม') { colW.innerHTML += card; cW++; }
-      else if(job.status === 'กำลังซ่อม') { colD.innerHTML += card; cD++; }
-      else if(job.status === 'รออะไหล่') { colP.innerHTML += card; cP++; }
+      if(job.status === 'รอซ่อม') { colW.innerHTML += card; }
+      else if(job.status === 'กำลังซ่อม') { colD.innerHTML += card; }
+      else if(job.status === 'รออะไหล่') { colP.innerHTML += card; }
     });
+  }
 
-    document.getElementById('cntWait').innerText = cW;
-    document.getElementById('cntDoing').innerText = cD;
-    document.getElementById('cntParts').innerText = cP;
-    
-    document.getElementById('mCntWait').innerText = cW;
-    document.getElementById('mCntDoing').innerText = cD;
-    document.getElementById('mCntParts').innerText = cP;
+  function filterQueue() {
+      let keyword = document.getElementById('searchPlate').value.toLowerCase();
+      let cW = 0, cD = 0, cP = 0;
+
+      document.querySelectorAll('#colWait .job-card').forEach(card => {
+          if (card.innerText.toLowerCase().includes(keyword)) { card.style.display = 'block'; cW++; } else { card.style.display = 'none'; }
+      });
+      document.querySelectorAll('#colDoing .job-card').forEach(card => {
+          if (card.innerText.toLowerCase().includes(keyword)) { card.style.display = 'block'; cD++; } else { card.style.display = 'none'; }
+      });
+      document.querySelectorAll('#colParts .job-card').forEach(card => {
+          if (card.innerText.toLowerCase().includes(keyword)) { card.style.display = 'block'; cP++; } else { card.style.display = 'none'; }
+      });
+
+      document.getElementById('cntWait').innerText = cW;
+      document.getElementById('cntDoing').innerText = cD;
+      document.getElementById('cntParts').innerText = cP;
+      
+      document.getElementById('mCntWait').innerText = cW;
+      document.getElementById('mCntDoing').innerText = cD;
+      document.getElementById('mCntParts').innerText = cP;
   }
 
   function switchMobileColumn(col) {
@@ -313,20 +362,20 @@
     let job = jobsData.find(j => j.jobId === id);
     document.getElementById('mPlate').innerText = job.plate;
     document.getElementById('mJobId').innerText = job.jobId;
-    document.getElementById('mMile').innerText = "เลขไมล์: " + job.mile.toLocaleString() + " กม.";
+    document.getElementById('mMile').innerHTML = `<i class="fas fa-tachometer-alt me-1"></i> เลขไมล์: ${job.mile.toLocaleString()} กม.`;
     
     let itemsHtml = ``;
     job.items.forEach(itm => {
         let displayCost = (itm.status === 'done') ? '' : 'd-none';
         
         itemsHtml += `
-        <div class="card mb-3 shadow-sm border-0 item-card" data-row="${itm.row}">
-          <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+        <div class="card shadow-sm border-0 item-card" data-row="${itm.row}">
+          <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0">
              <span class="fw-bold text-dark fs-6"><i class="fas fa-tools text-primary me-2"></i> ${itm.name}</span>
-             <button type="button" class="btn btn-sm btn-outline-danger border-0 px-2" onclick="toggleDelete(this)" title="ยกเลิกรายการ (ไม่ได้ทำ)"><i class="fas fa-trash-alt"></i></button>
+             <button type="button" class="btn btn-sm btn-outline-danger border-0 px-2 fs-6" onclick="toggleDelete(this)" title="ยกเลิกรายการนี้ (ไม่ได้ทำ)"><i class="fas fa-trash-alt"></i></button>
              <input type="hidden" class="status-delete-flag" value="false">
           </div>
-          <div class="card-body p-3 bg-light rounded-bottom">
+          <div class="card-body p-3 pt-0 bg-white rounded-bottom">
              <div class="row g-2 mb-2">
                 <div class="col-6">
                    <input type="radio" class="btn-check status-radio" name="st-${itm.row}" id="st-wait-${itm.row}" value="wait" ${itm.status==='wait'?'checked':''}>
@@ -346,9 +395,9 @@
                 </div>
              </div>
              
-             <div class="cost-input-wrapper ${displayCost} mt-3 p-2 bg-white border border-success rounded">
-                <label class="small text-success fw-bold mb-1">ค่าใช้จ่าย (บาท)</label>
-                <input type="number" class="form-control form-control-lg item-cost border-success text-success fw-bold" placeholder="ระบุราคา" value="${itm.cost}">
+             <div class="cost-input-wrapper ${displayCost} mt-3 p-3 bg-light border border-success rounded">
+                <label class="small text-success fw-bold mb-2">ระบุค่าใช้จ่าย (บาท)</label>
+                <input type="number" class="form-control form-control-lg item-cost border-success text-success fw-bold bg-white" placeholder="เช่น 500" value="${itm.cost}">
              </div>
           </div>
         </div>`;
@@ -377,15 +426,15 @@
       if(!container) return;
       
       const newItemHtml = `
-        <div class="card mb-3 shadow-sm border-primary new-item-card">
-           <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
-              <span class="small fw-bold fs-6"><i class="fas fa-plus-circle"></i> รายการตรวจพบเพิ่มเติม</span>
-              <button type="button" class="btn-close btn-close-white" style="font-size: 0.8rem;" onclick="this.closest('.new-item-card').remove()"></button>
+        <div class="card shadow-sm border-primary new-item-card border-2">
+           <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+              <span class="fw-bold fs-6"><i class="fas fa-plus-circle me-1"></i> รายการตรวจพบเพิ่มเติม</span>
+              <button type="button" class="btn-close btn-close-white" onclick="this.closest('.new-item-card').remove()"></button>
            </div>
-           <div class="card-body p-3 bg-light">
-              <label class="small fw-bold text-primary mb-1">เลือกรายการที่ซ่อมเพิ่มเติม</label>
-              <select class="form-select form-select-lg mb-2 new-item-select border-primary" onchange="toggleExtraCustomInput(this)">
-                 <option value="" disabled selected>แตะเพื่อเลือก...</option>
+           <div class="card-body p-4 bg-light">
+              <label class="fw-bold text-primary mb-2">เลือกรายการที่ซ่อมเพิ่มเติม</label>
+              <select class="form-select form-select-lg mb-3 new-item-select border-primary bg-white shadow-sm" onchange="toggleExtraCustomInput(this)">
+                 <option value="" disabled selected>-- แตะเพื่อเลือก --</option>
                  <option value="ถ่ายน้ำมันเครื่อง">ถ่ายน้ำมันเครื่อง</option>
                  <option value="เปลี่ยนกรองน้ำมันเครื่อง">เปลี่ยนกรองน้ำมันเครื่อง</option>
                  <option value="เป่ากรองอากาศ">เป่ากรองอากาศ</option>
@@ -398,10 +447,10 @@
                  <option value="เปลี่ยนยาง">เปลี่ยนยาง</option>
                  <option value="other">อื่นๆ (พิมพ์ระบุเอง)</option>
               </select>
-              <input type="text" class="form-control form-control-lg mb-3 d-none new-item-custom border-warning" placeholder="ระบุรายการเพิ่มเติม">
+              <input type="text" class="form-control form-control-lg mb-4 d-none new-item-custom border-warning bg-white shadow-sm" placeholder="พิมพ์ระบุรายการเพิ่มเติม">
               
-              <label class="small fw-bold text-success mb-1">ราคา (บาท)</label>
-              <input type="number" class="form-control form-control-lg new-item-cost border-success text-success fw-bold" placeholder="ระบุราคา">
+              <label class="fw-bold text-success mb-2">ราคา (บาท)</label>
+              <input type="number" class="form-control form-control-lg new-item-cost border-success text-success fw-bold bg-white shadow-sm" placeholder="ระบุราคา">
            </div>
         </div>`;
       container.insertAdjacentHTML('beforeend', newItemHtml);
@@ -493,7 +542,7 @@
 
   async function loadHistory() {
       if (historyData.length > 0) return; 
-      document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary mb-2"></div><br>กำลังโหลด...</td></tr>';
+      document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted"><div class="spinner-border text-primary mb-3"></div><br>กำลังโหลด...</td></tr>';
       try {
           historyData = await callAPI({ action: 'getRepairHistory' });
           let plates = [...new Set(historyData.map(item => item.plate))].sort();
@@ -519,18 +568,18 @@
   function renderHistory(data) {
       let tbody = document.getElementById('historyTableBody');
       if(data.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">ไม่พบข้อมูลประวัติการซ่อม</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted fs-5">ไม่พบข้อมูลประวัติการซ่อม</td></tr>';
           return;
       }
       let html = '';
       data.forEach(row => {
           html += `<tr>
-              <td>${row.date}</td>
-              <td class="fw-bold text-primary">${row.plate}</td>
-              <td class="text-end font-monospace">${row.mile.toLocaleString()}</td>
-              <td>${row.item}</td>
-              <td>${row.mechanic}</td>
-              <td class="text-end text-danger fw-bold">${row.cost.toLocaleString()}</td>
+              <td class="py-3 px-4">${row.date}</td>
+              <td class="py-3 px-4 fw-bold text-primary">${row.plate}</td>
+              <td class="py-3 px-4 text-end font-monospace">${row.mile.toLocaleString()}</td>
+              <td class="py-3 px-4">${row.item}</td>
+              <td class="py-3 px-4">${row.mechanic}</td>
+              <td class="py-3 px-4 text-end text-danger fw-bold fs-6">${row.cost.toLocaleString()}</td>
           </tr>`;
       });
       tbody.innerHTML = html;
