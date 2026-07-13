@@ -16,7 +16,7 @@
     .kanban-scroll-zone { flex: 1; overflow-y: auto; padding-right: 2px; }
     .kanban-header { font-weight: 600; font-size: 1.1rem; padding-bottom: 10px; border-bottom: 2px solid #ccc; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
     
-    .mobile-switcher { display: none; background: #fff; padding: 10px; border-bottom: 1px solid #dee2e6; sticky: top; z-index: 100; }
+    .mobile-switcher { display: none; background: #fff; padding: 10px; border-bottom: 1px solid #dee2e6; position: sticky; top: 0; z-index: 100; }
     .mobile-switcher .btn { border-radius: 20px; font-weight: 600; font-size: 0.9rem; }
     
     .job-card { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border-left: 6px solid; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
@@ -33,12 +33,11 @@
     .btn-check:checked + .btn-outline-primary { background-color: #0d6efd; color: white; }
     .btn-check:checked + .btn-outline-warning { background-color: #ffc107; color: black; }
     .btn-check:checked + .btn-outline-success { background-color: #198754; color: white; }
-    .btn-check:checked + .btn-outline-danger { background-color: #dc3545; color: white; }
     .btn-check:checked + .btn-outline-secondary { background-color: #6c757d; color: white; }
 
     @media (max-width: 767.98px) {
       .kanban-container { display: block; height: auto; padding: 10px; }
-      .kanban-col { display: none; width: 100%; min-width: 100%; height: calc(100vh - 200px); background: #f0f2f5; padding: 0; }
+      .kanban-col { display: none; width: 100%; min-width: 100%; height: calc(100vh - 150px); background: #f0f2f5; padding: 0; }
       .kanban-col.mobile-active { display: flex; }
       .kanban-header { display: none; }
       .mobile-switcher { display: flex; justify-content: space-between; gap: 5px; }
@@ -50,7 +49,7 @@
 </head>
 <body>
 
-<nav class="navbar navbar-dark sticky-top shadow-sm">
+<nav class="navbar navbar-dark shadow-sm">
   <div class="container-fluid d-flex justify-content-between align-items-center pt-1">
     <span class="navbar-brand fw-bold m-0"><i class="fas fa-tools text-warning"></i> คิวช่าง VKT</span>
     <ul class="nav nav-tabs border-0" id="mainTab" role="tablist">
@@ -67,7 +66,6 @@
 <div class="tab-content" id="mainTabContent">
   
   <div class="tab-pane fade show active" id="tabQueue" role="tabpanel">
-    
     <div class="mobile-switcher shadow-sm">
       <button class="btn btn-sm btn-secondary w-100 position-relative active" id="mBtnWait" onclick="switchMobileColumn('wait')">
         รอซ่อม <span class="badge bg-dark rounded-pill ms-1" id="mCntWait">0</span>
@@ -82,7 +80,6 @@
     </div>
 
     <div class="kanban-container">
-      
       <div class="kanban-col mobile-active" id="colWaitWrapper">
         <div class="kanban-header text-secondary">
            <span><i class="fas fa-clipboard-list"></i> รอซ่อม (<span id="cntWait">0</span>)</span>
@@ -100,7 +97,6 @@
         <div class="kanban-header text-warning border-warning"><i class="fas fa-box-open"></i> รออะไหล่ (<span id="cntParts">0</span>)</div>
         <div class="kanban-scroll-zone" id="colParts"></div>
       </div>
-
     </div>
   </div>
 
@@ -155,7 +151,7 @@
 
         <div class="d-flex justify-content-between align-items-center mb-2 px-1">
             <h6 class="fw-bold text-dark m-0">รายการซ่อมบำรุง</h6>
-            <button class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 fw-bold" onclick="addExtraJobItem()"><i class="fas fa-plus"></i> เพิ่มรายการ</button>
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-sm" onclick="addExtraJobItem()"><i class="fas fa-plus"></i> เพิ่มรายการ</button>
         </div>
 
         <div id="mItemsList" class="mb-3 d-flex flex-column gap-2"></div>
@@ -163,14 +159,14 @@
         <div class="card shadow-sm border-0 mb-3">
             <div class="card-body p-3">
                <label class="form-label small fw-bold text-dark mb-1">ชื่อช่างผู้ดำเนินการ</label>
-               <input type="text" id="mMechanic" class="form-control border-secondary" placeholder="ระบุชื่อช่าง (บังคับถ้ามีรายการที่เสร็จแล้ว)">
+               <input type="text" id="mMechanic" class="form-control border-secondary form-control-lg" placeholder="ระบุชื่อช่าง">
             </div>
         </div>
 
       </div>
-      <div class="modal-footer bg-white py-2">
-         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-         <button type="button" class="btn btn-success fw-bold px-4" onclick="submitJobUpdate()"><i class="fas fa-save me-1"></i> บันทึกข้อมูล</button>
+      <div class="modal-footer bg-white py-3">
+         <button type="button" class="btn btn-light border fw-bold w-25" data-bs-dismiss="modal">ยกเลิก</button>
+         <button type="button" class="btn btn-success fw-bold w-50" onclick="submitJobUpdate()"><i class="fas fa-save me-1"></i> บันทึกข้อมูล</button>
       </div>
     </div>
   </div>
@@ -291,6 +287,27 @@
       }
   }
 
+  function toggleDelete(btn) {
+      let card = btn.closest('.item-card');
+      let flag = card.querySelector('.status-delete-flag');
+      let body = card.querySelector('.card-body');
+      let headerText = card.querySelector('.card-header span');
+
+      if (flag.value === 'false') {
+          flag.value = 'true';
+          body.style.display = 'none';
+          headerText.classList.add('text-decoration-line-through', 'text-danger');
+          btn.innerHTML = '<i class="fas fa-undo"></i>';
+          btn.classList.replace('btn-outline-danger', 'btn-outline-secondary');
+      } else {
+          flag.value = 'false';
+          body.style.display = 'block';
+          headerText.classList.remove('text-decoration-line-through', 'text-danger');
+          btn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+          btn.classList.replace('btn-outline-secondary', 'btn-outline-danger');
+      }
+  }
+
   function openJobModal(id) {
     currentJobId = id;
     let job = jobsData.find(j => j.jobId === id);
@@ -300,44 +317,38 @@
     
     let itemsHtml = ``;
     job.items.forEach(itm => {
-        
         let displayCost = (itm.status === 'done') ? '' : 'd-none';
         
         itemsHtml += `
         <div class="card mb-3 shadow-sm border-0 item-card" data-row="${itm.row}">
           <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
-             <span class="fw-bold text-dark"><i class="fas fa-caret-right text-muted"></i> ${itm.name}</span>
+             <span class="fw-bold text-dark fs-6"><i class="fas fa-tools text-primary me-2"></i> ${itm.name}</span>
+             <button type="button" class="btn btn-sm btn-outline-danger border-0 px-2" onclick="toggleDelete(this)" title="ยกเลิกรายการ (ไม่ได้ทำ)"><i class="fas fa-trash-alt"></i></button>
+             <input type="hidden" class="status-delete-flag" value="false">
           </div>
-          <div class="card-body p-2 bg-light">
-             <div class="row g-1 mb-2">
+          <div class="card-body p-3 bg-light rounded-bottom">
+             <div class="row g-2 mb-2">
                 <div class="col-6">
                    <input type="radio" class="btn-check status-radio" name="st-${itm.row}" id="st-wait-${itm.row}" value="wait" ${itm.status==='wait'?'checked':''}>
-                   <label class="btn btn-outline-secondary btn-sm w-100 fw-bold" for="st-wait-${itm.row}">รอซ่อม</label>
+                   <label class="btn btn-outline-secondary w-100 fw-bold py-2 rounded" for="st-wait-${itm.row}">รอซ่อม</label>
                 </div>
                 <div class="col-6">
                    <input type="radio" class="btn-check status-radio" name="st-${itm.row}" id="st-doing-${itm.row}" value="doing" ${itm.status==='doing'?'checked':''}>
-                   <label class="btn btn-outline-primary btn-sm w-100 fw-bold" for="st-doing-${itm.row}">กำลังซ่อม</label>
+                   <label class="btn btn-outline-primary w-100 fw-bold py-2 rounded" for="st-doing-${itm.row}">กำลังซ่อม</label>
                 </div>
                 <div class="col-6">
                    <input type="radio" class="btn-check status-radio" name="st-${itm.row}" id="st-parts-${itm.row}" value="parts" ${itm.status==='parts'?'checked':''}>
-                   <label class="btn btn-outline-warning btn-sm w-100 fw-bold" for="st-parts-${itm.row}">รออะไหล่</label>
+                   <label class="btn btn-outline-warning w-100 fw-bold py-2 rounded" for="st-parts-${itm.row}">รออะไหล่</label>
                 </div>
                 <div class="col-6">
                    <input type="radio" class="btn-check status-radio" name="st-${itm.row}" id="st-done-${itm.row}" value="done" ${itm.status==='done'?'checked':''}>
-                   <label class="btn btn-outline-success btn-sm w-100 fw-bold" for="st-done-${itm.row}">เสร็จแล้ว</label>
-                </div>
-                <div class="col-12 mt-1">
-                   <input type="radio" class="btn-check status-radio text-danger" name="st-${itm.row}" id="st-del-${itm.row}" value="delete">
-                   <label class="btn btn-outline-danger btn-sm w-100" for="st-del-${itm.row}"><i class="fas fa-trash-alt"></i> ลบทิ้ง (ไม่ได้ทำ)</label>
+                   <label class="btn btn-outline-success w-100 fw-bold py-2 rounded" for="st-done-${itm.row}">เสร็จแล้ว</label>
                 </div>
              </div>
              
-             <div class="cost-input-wrapper ${displayCost}">
-                <div class="input-group input-group-sm">
-                   <span class="input-group-text bg-white">ราคา</span>
-                   <input type="number" class="form-control item-cost border-success text-success fw-bold" placeholder="ระบุราคา" value="${itm.cost}">
-                   <span class="input-group-text bg-white">บาท</span>
-                </div>
+             <div class="cost-input-wrapper ${displayCost} mt-3 p-2 bg-white border border-success rounded">
+                <label class="small text-success fw-bold mb-1">ค่าใช้จ่าย (บาท)</label>
+                <input type="number" class="form-control form-control-lg item-cost border-success text-success fw-bold" placeholder="ระบุราคา" value="${itm.cost}">
              </div>
           </div>
         </div>`;
@@ -368,12 +379,13 @@
       const newItemHtml = `
         <div class="card mb-3 shadow-sm border-primary new-item-card">
            <div class="card-header bg-primary text-white py-2 d-flex justify-content-between align-items-center">
-              <span class="small fw-bold"><i class="fas fa-plus-circle"></i> รายการตรวจพบเพิ่มเติม</span>
-              <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" onclick="this.closest('.new-item-card').remove()"></button>
+              <span class="small fw-bold fs-6"><i class="fas fa-plus-circle"></i> รายการตรวจพบเพิ่มเติม</span>
+              <button type="button" class="btn-close btn-close-white" style="font-size: 0.8rem;" onclick="this.closest('.new-item-card').remove()"></button>
            </div>
-           <div class="card-body p-2 bg-light">
-              <select class="form-select form-select-sm mb-2 new-item-select border-primary" onchange="toggleExtraCustomInput(this)">
-                 <option value="" disabled selected>เลือกรายการที่ช่างซ่อมเพิ่ม...</option>
+           <div class="card-body p-3 bg-light">
+              <label class="small fw-bold text-primary mb-1">เลือกรายการที่ซ่อมเพิ่มเติม</label>
+              <select class="form-select form-select-lg mb-2 new-item-select border-primary" onchange="toggleExtraCustomInput(this)">
+                 <option value="" disabled selected>แตะเพื่อเลือก...</option>
                  <option value="ถ่ายน้ำมันเครื่อง">ถ่ายน้ำมันเครื่อง</option>
                  <option value="เปลี่ยนกรองน้ำมันเครื่อง">เปลี่ยนกรองน้ำมันเครื่อง</option>
                  <option value="เป่ากรองอากาศ">เป่ากรองอากาศ</option>
@@ -384,15 +396,12 @@
                  <option value="อัดจารบี">อัดจารบี</option>
                  <option value="สลับยาง">สลับยาง</option>
                  <option value="เปลี่ยนยาง">เปลี่ยนยาง</option>
-                 <option value="other">อื่นๆ (ระบุเอง)</option>
+                 <option value="other">อื่นๆ (พิมพ์ระบุเอง)</option>
               </select>
-              <input type="text" class="form-control form-control-sm mb-2 d-none new-item-custom border-warning" placeholder="ระบุรายการเพิ่มเติม">
+              <input type="text" class="form-control form-control-lg mb-3 d-none new-item-custom border-warning" placeholder="ระบุรายการเพิ่มเติม">
               
-              <div class="input-group input-group-sm">
-                 <span class="input-group-text bg-white text-primary border-primary">ราคา</span>
-                 <input type="number" class="form-control new-item-cost border-primary text-primary fw-bold" placeholder="ระบุราคา">
-                 <span class="input-group-text bg-white border-primary">บาท</span>
-              </div>
+              <label class="small fw-bold text-success mb-1">ราคา (บาท)</label>
+              <input type="number" class="form-control form-control-lg new-item-cost border-success text-success fw-bold" placeholder="ระบุราคา">
            </div>
         </div>`;
       container.insertAdjacentHTML('beforeend', newItemHtml);
@@ -419,12 +428,14 @@
 
       document.querySelectorAll('.item-card').forEach(card => {
           let row = card.getAttribute('data-row');
-          let selectedStatus = card.querySelector('.status-radio:checked').value;
-          let cost = card.querySelector('.item-cost').value;
+          let isDeleted = card.querySelector('.status-delete-flag').value === 'true';
 
-          if (selectedStatus === 'delete') {
+          if (isDeleted) {
               deletes.push(row);
           } else {
+              let selectedStatus = card.querySelector('.status-radio:checked').value;
+              let cost = card.querySelector('.item-cost').value;
+
               if(selectedStatus === 'done' && cost === '') {
                   hasError = true;
               }
